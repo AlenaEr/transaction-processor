@@ -3,8 +3,8 @@ spring:
     name: transaction-processor
   datasource:
     url: jdbc:postgresql://localhost:5432/transaction_db
-    username: root
-    password: root
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
