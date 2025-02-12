@@ -30,14 +30,15 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<CompletableFuture<Transaction>> createTransaction(@RequestBody Transaction transaction) {
-        CompletableFuture<Transaction> createdTransaction = transactionService.createTransaction(transaction);
-        return ResponseEntity.ok(createdTransaction);
+    public CompletableFuture<ResponseEntity<Transaction>> createTransaction(@RequestBody Transaction transaction) {
+        return transactionService.createTransaction(transaction)
+                .thenApply(ResponseEntity::ok);
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<List<Transaction>> createTransactionsBatch(@RequestBody List<Transaction> transactions) {
-        List<Transaction> createdTransactions = transactionService.createTransactionsBatch(transactions);
-        return ResponseEntity.ok(createdTransactions);
+    public CompletableFuture<ResponseEntity<List<Transaction>>> createTransactionsBatch(@RequestBody List<Transaction> transactions) {
+        return transactionService.createTransactionsBatch(transactions)
+                .thenApply(ResponseEntity::ok);
     }
 }
+

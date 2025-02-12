@@ -21,7 +21,6 @@ public class DataLoader {
     //TODO TEMPORARY SOLUTION Database population should not run on every program startup; make sure to change this.
     @PostConstruct
     public void init() {
-        // Если таблица пуста, добавляем транзакции
         List<Transaction> transactions = List.of(
                 new Transaction("account1", "account2", 1000000.0),
                 new Transaction("account2", "account3", 200.0),

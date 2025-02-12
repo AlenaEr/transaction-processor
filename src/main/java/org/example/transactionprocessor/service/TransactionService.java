@@ -4,22 +4,25 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.example.transactionprocessor.model.Transaction;
 import org.example.transactionprocessor.repository.TransactionRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Service
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final TransactionProcessor transactionProcessor;
+    private final Executor transactionExecutor;
 
-    public TransactionService(TransactionRepository transactionRepository, TransactionProcessor transactionProcessor) {
+    public TransactionService(TransactionRepository transactionRepository,
+                              @Qualifier("transactionExecutor") Executor transactionExecutor) {
         this.transactionRepository = transactionRepository;
-        this.transactionProcessor = transactionProcessor;
+        this.transactionExecutor = transactionExecutor;
     }
 
     public List<Transaction> getAllTransactions() {
@@ -29,27 +32,29 @@ public class TransactionService {
         return transactions;
     }
 
-    //TODO Add validation,additional logic..
-    @Async
+    @Async("transactionExecutor")
     public CompletableFuture<Transaction> createTransaction(Transaction transaction) {
-        log.info("Received request to create transaction: {}", transaction);
-        Transaction savedTransaction = transactionProcessor.processTransaction(transaction);
-        log.info("Transaction processed and saved: {}", savedTransaction);
-        return CompletableFuture.completedFuture(savedTransaction);
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Processing transaction: {}", transaction);
+            Transaction savedTransaction = transactionRepository.save(transaction);
+            log.info("Transaction saved: {}", savedTransaction);
+            return savedTransaction;
+        }, transactionExecutor);
     }
 
     @Transactional
-    public List<Transaction> createTransactionsBatch(List<Transaction> transactions) {
-        log.info("Processing batch of {} transactions", transactions.size());
-        for (Transaction transaction : transactions) {
-            if (transaction.getAccountFrom() == null || transaction.getAccountTo() == null) {
-                log.error("Invalid transaction data: {}", transaction);
-                throw new IllegalArgumentException("Invalid transaction data");
+    public CompletableFuture<List<Transaction>> createTransactionsBatch(List<Transaction> transactions) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Processing batch of {} transactions", transactions.size());
+            for (Transaction transaction : transactions) {
+                if (transaction.getAccountFrom() == null || transaction.getAccountTo() == null) {
+                    log.error("Invalid transaction data: {}", transaction);
+                    throw new IllegalArgumentException("Invalid transaction data");
+                }
             }
-        }
-        List<Transaction> processedTransactions = transactionProcessor.processTransactionsBatch(transactions);
-        List<Transaction> savedTransactions = transactionRepository.saveAll(processedTransactions);
-        log.info("Successfully processed and saved batch of {} transactions", savedTransactions.size());
-        return savedTransactions;
+            List<Transaction> savedTransactions = transactionRepository.saveAll(transactions);
+            log.info("Successfully processed and saved batch of {} transactions", savedTransactions.size());
+            return savedTransactions;
+        }, transactionExecutor);
     }
 }

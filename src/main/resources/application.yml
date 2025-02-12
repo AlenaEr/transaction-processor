@@ -1,3 +1,8 @@
+app:
+  threadPool:
+    corePoolSize: 10
+    maxPoolSize: 100
+    queueCapacity: 100
 spring:
   application:
     name: transaction-processor

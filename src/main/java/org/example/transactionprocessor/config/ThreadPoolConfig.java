@@ -1,23 +1,31 @@
 package org.example.transactionprocessor.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.concurrent.Executor;
-
 @Configuration
 @EnableAsync
 public class ThreadPoolConfig {
 
+    @Value("${app.threadPool.corePoolSize}")
+    private int corePoolSize;
+
+    @Value("${app.threadPool.maxPoolSize}")
+    private int maxPoolSize;
+
+    @Value("${app.threadPool.queueCapacity}")
+    private int queueCapacity;
+
     @Bean
-    public Executor taskExecutor() {
+    public ThreadPoolTaskExecutor transactionExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(15);
-        executor.setQueueCapacity(50);
-        executor.setThreadNamePrefix("TransactionExecutor-");
+        executor.setCorePoolSize(corePoolSize);
+        executor.setMaxPoolSize(maxPoolSize);
+        executor.setQueueCapacity(queueCapacity);
+        executor.setThreadNamePrefix("Transaction-Executor-");
         executor.initialize();
         return executor;
     }
