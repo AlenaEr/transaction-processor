@@ -3,6 +3,7 @@ package org.example.transactionprocessor.service;
 import org.example.transactionprocessor.model.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ public class TransactionProcessor {
     private final BlockingQueue<Transaction> transactionQueue = new LinkedBlockingQueue<>();
     private final Executor executor;
 
+    @Autowired
     public TransactionProcessor(TransactionService transactionService, @Qualifier("taskExecutor") Executor executor) {
         this.transactionService = transactionService;
         this.executor = executor;
