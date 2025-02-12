@@ -7,29 +7,32 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-/*
-@Controller + @ResponseBody. Она используется для построения REST API и
-всегда возвращает данные в формате JSON или XML, а не HTML-страницы.
- */
+/**
+@Controller + @ResponseBody. It is used for building REST APIs and always returns data in JSON or XML format, rather than HTML pages.
+*/
 @RestController
 @RequestMapping("/transactions")
 public class TransactionController {
 
     private final TransactionService transactionService;
 
+    @Autowired
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
     @GetMapping
-    public List<Transaction> getAllTransactions() {
-        return transactionService.getAllTransactions();
+    public ResponseEntity<List<Transaction>> getAllTransactions() {
+        List<Transaction> transactions = transactionService.getAllTransactions();
+        return ResponseEntity.ok(transactions);
     }
 
     @PostMapping
-    public Transaction createTransaction(@RequestBody Transaction transaction) {
-        return transactionService.createTransaction(transaction);
+    public ResponseEntity<CompletableFuture<Transaction>> createTransaction(@RequestBody Transaction transaction) {
+        CompletableFuture<Transaction> createdTransaction = transactionService.createTransaction(transaction);
+        return ResponseEntity.ok(createdTransaction);
     }
 
     @PostMapping("/batch")

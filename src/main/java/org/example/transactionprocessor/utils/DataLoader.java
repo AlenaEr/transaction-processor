@@ -18,6 +18,7 @@ public class DataLoader {
         this.transactionRepository = transactionRepository;
     }
 
+    //TODO TEMPORARY SOLUTION Database population should not run on every program startup; make sure to change this.
     @PostConstruct
     public void init() {
         // Если таблица пуста, добавляем транзакции
