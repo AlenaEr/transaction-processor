@@ -22,10 +22,10 @@ public class DataLoader {
     @PostConstruct
     public void init() {
         List<Transaction> transactions = List.of(
-                new Transaction("account1", "account2", 1000000.0),
-                new Transaction("account2", "account3", 200.0),
-                new Transaction("account1", "account3", 300.0),
-                new Transaction("account4", "account1", 400.0)
+//                new Transaction("account1", "account2", 1000000.0),
+//                new Transaction("account2", "account3", 200.0),
+//                new Transaction("account1", "account3", 300.0),
+//                new Transaction("account4", "account1", 400.0)
         );
         transactionService.createTransactionsBatch(transactions);
     }

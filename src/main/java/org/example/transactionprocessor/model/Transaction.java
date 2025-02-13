@@ -1,9 +1,7 @@
 package org.example.transactionprocessor.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
+import java.time.ZonedDateTime;
 
 @Entity
 public class Transaction {
@@ -14,6 +12,14 @@ public class Transaction {
     private String accountFrom;
     private String accountTo;
     private Double amount;
+
+    @Column(nullable = false, updatable = false)
+    private ZonedDateTime timestamp;
+
+    @PrePersist
+    protected void onCreate() {
+        this.timestamp = ZonedDateTime.now();
+    }
 
     public Transaction() {
     }
@@ -50,5 +56,19 @@ public class Transaction {
 
     public void setAmount(Double amount) {
         this.amount = amount;
+    }
+
+    public ZonedDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "amount=" + amount +
+                ", accountTo='" + accountTo + '\'' +
+                ", accountFrom='" + accountFrom + '\'' +
+                ", id=" + id +
+                '}';
     }
 }

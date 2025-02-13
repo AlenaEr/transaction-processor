@@ -45,7 +45,7 @@ public class TransactionService {
     @Transactional
     public CompletableFuture<List<Transaction>> createTransactionsBatch(List<Transaction> transactions) {
         return CompletableFuture.supplyAsync(() -> {
-            log.info("Processing batch of {} transactions", transactions.size());
+            log.info("Processing batch of {} transactions in thread {}", transactions.size(), Thread.currentThread().getName());
             for (Transaction transaction : transactions) {
                 if (transaction.getAccountFrom() == null || transaction.getAccountTo() == null) {
                     log.error("Invalid transaction data: {}", transaction);
