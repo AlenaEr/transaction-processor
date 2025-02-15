@@ -3,6 +3,7 @@ package org.example.transactionprocessor.model;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 
+//TODO use DTO instead of entity
 @Entity
 public class Transaction {
     @Id
