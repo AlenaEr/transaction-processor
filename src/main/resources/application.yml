@@ -19,7 +19,10 @@ spring:
       hibernate.format_sql: true
   server:
     port: 8080
-
+  data:
+    redis:
+      host: localhost
+      port: 6379
 management:
   endpoints:
     web:
@@ -28,7 +31,3 @@ management:
   metrics:
     enable:
       all: true
-
-
-#http://localhost:8080/actuator/metrics/hikaricp.connections
-#http://localhost:8080/actuator/metrics/hikaricp.connections.pending:
