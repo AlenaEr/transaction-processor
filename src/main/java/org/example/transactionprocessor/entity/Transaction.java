@@ -1,7 +1,9 @@
-package org.example.transactionprocessor.model;
+package org.example.transactionprocessor.entity;
 
 import jakarta.persistence.*;
-import java.time.ZonedDateTime;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 //TODO use DTO instead of entity
 @Entity
@@ -12,20 +14,21 @@ public class Transaction {
 
     private String accountFrom;
     private String accountTo;
-    private Double amount;
+    private BigDecimal amount;
 
     @Column(nullable = false, updatable = false)
-    private ZonedDateTime timestamp;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.timestamp = ZonedDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 
     public Transaction() {
     }
 
-    public Transaction(String accountFrom, String accountTo, Double amount) {
+    public Transaction(String accountFrom, String accountTo, BigDecimal amount) {
         this.accountFrom = accountFrom;
         this.accountTo = accountTo;
         this.amount = amount;
@@ -51,25 +54,35 @@ public class Transaction {
         this.accountTo = accountTo;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public ZonedDateTime getTimestamp() {
-        return timestamp;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override
     public String toString() {
         return "Transaction{" +
-                "amount=" + amount +
-                ", accountTo='" + accountTo + '\'' +
+                "id=" + id +
                 ", accountFrom='" + accountFrom + '\'' +
-                ", id=" + id +
+                ", accountTo='" + accountTo + '\'' +
+                ", amount=" + amount +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 '}';
     }
 }

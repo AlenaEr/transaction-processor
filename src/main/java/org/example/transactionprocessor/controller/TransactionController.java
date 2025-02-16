@@ -1,6 +1,6 @@
 package org.example.transactionprocessor.controller;
 
-import org.example.transactionprocessor.model.Transaction;
+import org.example.transactionprocessor.entity.dto.TransactionDto;
 import org.example.transactionprocessor.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,19 +24,18 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        List<Transaction> transactions = transactionService.getAllTransactions();
-        return ResponseEntity.ok(transactions);
+    public ResponseEntity<List<TransactionDto>> getAllTransactions() {
+        return ResponseEntity.ok(transactionService.getAllTransactions());
     }
 
     @PostMapping
-    public CompletableFuture<ResponseEntity<Transaction>> createTransaction(@RequestBody Transaction transaction) {
+    public CompletableFuture<ResponseEntity<TransactionDto>> createTransaction(@RequestBody TransactionDto transaction) {
         return transactionService.createTransaction(transaction)
                 .thenApply(ResponseEntity::ok);
     }
 
     @PostMapping("/batch")
-    public CompletableFuture<ResponseEntity<List<Transaction>>> createTransactionsBatch(@RequestBody List<Transaction> transactions) {
+    public CompletableFuture<ResponseEntity<List<TransactionDto>>> createTransactionsBatch(@RequestBody List<TransactionDto> transactions) {
         return transactionService.createTransactionsBatch(transactions)
                 .thenApply(ResponseEntity::ok);
     }

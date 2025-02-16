@@ -1,12 +1,12 @@
 package org.example.transactionprocessor.service;
 
-import org.example.transactionprocessor.model.Transaction;
+import org.example.transactionprocessor.entity.dto.TransactionDto;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface TransactionService {
-    List<Transaction> getAllTransactions();
-    CompletableFuture<Transaction> createTransaction(Transaction transaction);
-    CompletableFuture<List<Transaction>> createTransactionsBatch(List<Transaction> transactions);
+    List<TransactionDto> getAllTransactions();
+    CompletableFuture<TransactionDto> createTransaction(TransactionDto transaction);
+    CompletableFuture<List<TransactionDto>> createTransactionsBatch(List<TransactionDto> transactions);
 }
