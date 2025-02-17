@@ -1,4 +1,4 @@
-package org.example.transactionprocessor.service;
+package org.example.transactionprocessor.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -6,6 +6,7 @@ import org.example.transactionprocessor.mapper.TransactionMapper;
 import org.example.transactionprocessor.entity.Transaction;
 import org.example.transactionprocessor.entity.dto.TransactionDto;
 import org.example.transactionprocessor.repository.TransactionRepository;
+import org.example.transactionprocessor.service.TransactionService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
