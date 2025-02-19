@@ -25,6 +25,11 @@ public class Transaction {
         this.createdAt = LocalDateTime.now();
     }
 
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public Transaction() {
     }
 

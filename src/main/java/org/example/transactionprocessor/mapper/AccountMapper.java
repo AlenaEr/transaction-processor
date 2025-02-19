@@ -8,11 +8,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {BalanceMapper.class})
 public interface AccountMapper {
 
-    // Здесь мы маппируем поле "balance" из сущности Account в "balance" в AccountDto
-    @Mapping(source = "balance", target = "balance")  // balance -> balance
+    @Mapping(source = "balance", target = "balance")
     AccountDto toDto(Account account);
 
-    // Здесь мы маппируем "balanceDto" из AccountDto в поле "balance" в сущности Account
-    @Mapping(source = "balance", target = "balance")  // balanceDto -> balance
+    @Mapping(source = "balance", target = "balance")
     Account toEntity(AccountDto accountDto);
 }

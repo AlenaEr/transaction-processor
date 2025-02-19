@@ -7,6 +7,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface TransactionService {
     List<TransactionDto> getAllTransactions();
+
     CompletableFuture<TransactionDto> createTransaction(TransactionDto transaction);
+
     CompletableFuture<List<TransactionDto>> createTransactionsBatch(List<TransactionDto> transactions);
 }

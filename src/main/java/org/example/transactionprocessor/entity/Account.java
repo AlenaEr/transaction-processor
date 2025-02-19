@@ -10,7 +10,7 @@ public class Account {
 
     private String accountNumber;
 
-    @OneToOne(mappedBy = "account")
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Balance balance;
 
     public Account() {}

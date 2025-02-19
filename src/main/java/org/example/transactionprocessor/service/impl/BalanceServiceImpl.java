@@ -55,6 +55,7 @@ public class BalanceServiceImpl implements BalanceService {
         return balance.getAmount();
     }
 
+    //TODO add source type(ATM, online...)
     @Override
     public Balance deposit(String accountNumber, BigDecimal amount) {
         Account account = getAccountByNumber(accountNumber);
@@ -63,14 +64,14 @@ public class BalanceServiceImpl implements BalanceService {
         BigDecimal currentAmount = balance.getAmount();
         BigDecimal updatedAmount = currentAmount.add(amount);
         balance.setAmount(updatedAmount);
-
+        balance.setAccount(account);
         balanceRepository.save(balance);
         cacheService.saveBalance(accountNumber, updatedAmount);
 
         return balance;
     }
 
-    @Override
+    @Override//TODO add source type(ATM, online...)
     public Balance withdraw(String accountNumber, BigDecimal amount) {
         Account account = getAccountByNumber(accountNumber);
         Balance balance = getOrCreateBalance(account);
@@ -82,7 +83,7 @@ public class BalanceServiceImpl implements BalanceService {
         BigDecimal currentAmount = balance.getAmount();
         BigDecimal updatedAmount = currentAmount.subtract(amount);
         balance.setAmount(updatedAmount);
-
+        balance.setAccount(account);
         balanceRepository.save(balance);
         cacheService.saveBalance(accountNumber, updatedAmount);
 

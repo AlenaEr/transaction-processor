@@ -2,18 +2,23 @@ package org.example.transactionprocessor.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.example.transactionprocessor.mapper.TransactionMapper;
+import org.example.transactionprocessor.entity.Account;
 import org.example.transactionprocessor.entity.Transaction;
 import org.example.transactionprocessor.entity.dto.TransactionDto;
+import org.example.transactionprocessor.mapper.AccountMapper;
+import org.example.transactionprocessor.mapper.BalanceMapper;
+import org.example.transactionprocessor.mapper.TransactionMapper;
 import org.example.transactionprocessor.repository.TransactionRepository;
+import org.example.transactionprocessor.service.AccountService;
+import org.example.transactionprocessor.service.BalanceService;
 import org.example.transactionprocessor.service.TransactionService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,55 +26,97 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final Executor transactionExecutor;
+    private final AccountService accountService;
+    private final BalanceService balanceService;
     private final TransactionMapper transactionMapper;
+    private final BalanceMapper balanceMapper;
+    private final AccountMapper accountMapper;
 
+
+    @Autowired
     public TransactionServiceImpl(TransactionRepository transactionRepository,
-                                  @Qualifier("transactionExecutor") Executor transactionExecutor, TransactionMapper transactionMapper) {
+                                  AccountService accountService,
+                                  BalanceService balanceService,
+                                  TransactionMapper transactionMapper, BalanceMapper balanceMapper, AccountMapper accountMapper) {
         this.transactionRepository = transactionRepository;
-        this.transactionExecutor = transactionExecutor;
+        this.accountService = accountService;
+        this.balanceService = balanceService;
         this.transactionMapper = transactionMapper;
+        this.balanceMapper = balanceMapper;
+        this.accountMapper = accountMapper;
     }
 
+    @Override
     public List<TransactionDto> getAllTransactions() {
         log.info("Fetching all transactions from the database");
         return transactionRepository.findAll()
                 .stream()
                 .map(transactionMapper::toDto)
-                .toList();
+                .collect(Collectors.toList());
     }
 
-    @Async("transactionExecutor")
+    @Transactional
     public CompletableFuture<TransactionDto> createTransaction(TransactionDto transactionDto) {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Processing transaction: {}", transactionDto);
-            Transaction entity = transactionMapper.toEntity(transactionDto);
-            Transaction savedEntity = transactionRepository.save(entity);
-            TransactionDto savedTransactionDto = transactionMapper.toDto(savedEntity);
-            log.info("Transaction saved: {}", savedTransactionDto);
-            return savedTransactionDto;
-        }, transactionExecutor);
+
+            Account accountFrom = accountMapper.toEntity(accountService.getAccountByNumber(transactionDto.accountFrom()));
+            Account accountTo = accountMapper.toEntity(accountService.getAccountByNumber(transactionDto.accountTo()));
+
+            BigDecimal balanceFrom = balanceService.getBalance(accountFrom.getAccountNumber());
+
+            if (balanceFrom.compareTo(transactionDto.amount()) < 0) {
+                throw new IllegalArgumentException("Insufficient funds on account " + accountFrom.getAccountNumber());
+            }
+
+            balanceService.withdraw(accountFrom.getAccountNumber(), transactionDto.amount());
+            balanceService.deposit(accountTo.getAccountNumber(), transactionDto.amount());
+
+            Transaction transaction = transactionMapper.toEntity(transactionDto);
+            Transaction savedTransaction = transactionRepository.save(transaction);
+            log.info("Transaction saved: {}", savedTransaction);
+
+            return transactionMapper.toDto(savedTransaction);
+        });
     }
 
     @Transactional
     public CompletableFuture<List<TransactionDto>> createTransactionsBatch(List<TransactionDto> transactionDtos) {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Processing batch of {} transactions in thread {}", transactionDtos.size(), Thread.currentThread().getName());
-            List<Transaction> transactions = transactionDtos.stream()
-                    .map(transactionMapper::toEntity)
-                    .collect(Collectors.toList());
-            for (Transaction transaction : transactions) {
-                if (transaction.getAccountFrom() == null || transaction.getAccountTo() == null) {
-                    log.error("Invalid transaction data: {}", transaction);
-                    throw new IllegalArgumentException("Invalid transaction data");
+
+            List<TransactionDto> processedTransactions = new ArrayList<>();
+
+            for (TransactionDto transactionDto : transactionDtos) {
+
+                Account accountFrom = accountMapper.toEntity(accountService.getAccountByNumber(transactionDto.accountFrom()));
+                Account accountTo = accountMapper.toEntity(accountService.getAccountByNumber(transactionDto.accountTo()));
+
+                if (accountFrom == null || accountTo == null) {
+                    log.error("Invalid transaction: accountFrom or accountTo is null: {}", transactionDto);
+                    throw new IllegalArgumentException("Invalid transaction: account not found");
                 }
+
+                BigDecimal balanceFrom = balanceService.getBalance(accountFrom.getAccountNumber());
+
+                if (balanceFrom.compareTo(transactionDto.amount()) < 0) {
+                    log.error("Insufficient funds on account {}", accountFrom.getAccountNumber());
+                    throw new IllegalArgumentException("Insufficient funds on account " + accountFrom.getAccountNumber());
+                }
+
+                balanceService.withdraw(accountFrom.getAccountNumber(), transactionDto.amount());
+                balanceService.deposit(accountTo.getAccountNumber(), transactionDto.amount());
+
+                Transaction transaction = transactionMapper.toEntity(transactionDto);
+                transaction.setAccountFrom(accountFrom.getAccountNumber());
+                transaction.setAccountTo(accountTo.getAccountNumber());
+                Transaction savedTransaction = transactionRepository.save(transaction);
+
+                processedTransactions.add(transactionMapper.toDto(savedTransaction));
             }
-            List<Transaction> savedTransactions = transactionRepository.saveAll(transactions);
-            log.info("Successfully processed and saved batch of {} transactions", savedTransactions.size());
-            List<TransactionDto> savedTransactionDtos = savedTransactions.stream()
-                    .map(transactionMapper::toDto)
-                    .collect(Collectors.toList());
-            return savedTransactionDtos;
-        }, transactionExecutor);
+
+            log.info("Successfully processed and saved batch of {} transactions", processedTransactions.size());
+            return processedTransactions;
+        });
     }
 }

@@ -2,16 +2,15 @@ package org.example.transactionprocessor.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.transactionprocessor.entity.Account;
-import org.example.transactionprocessor.entity.Balance;
 import org.example.transactionprocessor.entity.dto.AccountDto;
-import org.example.transactionprocessor.entity.dto.BalanceDto;
 import org.example.transactionprocessor.mapper.AccountMapper;
 import org.example.transactionprocessor.repository.AccountRepository;
 import org.example.transactionprocessor.service.AccountService;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,11 +31,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account getAccountByNumber(String accountNumber) {
+    public AccountDto getAccountByNumber(String accountNumber) {
         log.info("Fetching account with accountNumber: {}", accountNumber);
         Optional<Account> accountOptional = accountRepository.findByAccountNumber(accountNumber);
         if (accountOptional.isPresent()) {
-            return accountOptional.get();
+            return accountMapper.toDto(accountOptional.get());
         } else {
             throw new IllegalArgumentException("Account not found: " + accountNumber);
         }
@@ -50,8 +49,18 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void deleteAccount(String accountNumber) {
-        Account account = getAccountByNumber(accountNumber);
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + accountNumber));
+
         accountRepository.delete(account);
         log.info("Deleted account: {}", accountNumber);
+    }
+
+    @Override
+    public List<AccountDto> getAllAccounts() {
+        List<Account> accounts = accountRepository.findAll();
+        return accounts.stream()
+                .map(accountMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
