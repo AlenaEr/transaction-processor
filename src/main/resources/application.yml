@@ -3,6 +3,7 @@ app:
     corePoolSize: 3
     maxPoolSize: 10
     queueCapacity: 11
+
 spring:
   application:
     name: transaction-processor
@@ -17,20 +18,24 @@ spring:
     show-sql: true
     properties:
       hibernate.format_sql: true
-  server:
-    port: 8080
-  data:
-    redis:
-      host: localhost
-      port: 6379
+
+server:
+  port: 8080
+
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      access: unrestricted
   metrics:
     enable:
       all: true
+  server:
+    port: 8081
+
 springdoc:
   swagger-ui:
     enabled: true
@@ -38,3 +43,12 @@ springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
+
+info:
+  build:
+    artifact: ${project.artifactId}
+    version: ${project.version}
+    time: ${maven.build.timestamp}
+  app:
+    name: ${spring.application.name}
+    description: "Transaction processing application"
