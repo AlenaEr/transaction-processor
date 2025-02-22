@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.transactionprocessor.entity.Account;
 import org.example.transactionprocessor.entity.Transaction;
 import org.example.transactionprocessor.entity.dto.TransactionDto;
+import org.example.transactionprocessor.exceptions.InsufficientFundsException;
 import org.example.transactionprocessor.mapper.AccountMapper;
 import org.example.transactionprocessor.mapper.BalanceMapper;
 import org.example.transactionprocessor.mapper.TransactionMapper;
@@ -21,6 +22,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of {@link TransactionService} that handles financial transactions.
+ * <p>
+ * This service is responsible for processing single and batch transactions,
+ * ensuring balance updates, and maintaining transaction records.
+ */
 @Slf4j
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -32,7 +39,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final BalanceMapper balanceMapper;
     private final AccountMapper accountMapper;
 
-
+    /**
+     * Constructor to initialize the dependencies.
+     *
+     * @param transactionRepository Repository for transaction-related operations.
+     * @param accountService Service for account-related operations.
+     * @param balanceService Service for balance-related operations.
+     * @param transactionMapper Mapper for converting Transaction entities to DTOs.
+     * @param balanceMapper Mapper for converting Balance entities to DTOs.
+     * @param accountMapper Mapper for converting Account entities to DTOs.
+     */
     @Autowired
     public TransactionServiceImpl(TransactionRepository transactionRepository,
                                   AccountService accountService,
@@ -46,6 +62,11 @@ public class TransactionServiceImpl implements TransactionService {
         this.accountMapper = accountMapper;
     }
 
+    /**
+     * Retrieves all transactions from the repository.
+     *
+     * @return A list of all transactions as TransactionDto objects.
+     */
     @Override
     public List<TransactionDto> getAllTransactions() {
         log.info("Fetching all transactions from the database");
@@ -55,7 +76,16 @@ public class TransactionServiceImpl implements TransactionService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Creates a single transaction asynchronously.
+     * Processes the transaction, validates funds, and saves it to the repository.
+     *
+     * @param transactionDto The transaction to be created as TransactionDto.
+     * @return A CompletableFuture with the created transaction as TransactionDto.
+     * @throws InsufficientFundsException if there are not enough funds for the transaction.
+     */
     @Transactional
+    @Override
     public CompletableFuture<TransactionDto> createTransaction(TransactionDto transactionDto) {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Processing transaction: {}", transactionDto);
@@ -66,7 +96,7 @@ public class TransactionServiceImpl implements TransactionService {
             BigDecimal balanceFrom = balanceService.getBalance(accountFrom.getAccountNumber());
 
             if (balanceFrom.compareTo(transactionDto.amount()) < 0) {
-                throw new IllegalArgumentException("Insufficient funds on account " + accountFrom.getAccountNumber());
+                throw new InsufficientFundsException("Insufficient funds on account " + accountFrom.getAccountNumber());
             }
 
             balanceService.withdraw(accountFrom.getAccountNumber(), transactionDto.amount());
@@ -80,7 +110,16 @@ public class TransactionServiceImpl implements TransactionService {
         });
     }
 
+    /**
+     * Creates a batch of transactions asynchronously.
+     * Processes and validates each transaction in the batch, and saves them to the repository.
+     *
+     * @param transactionDtos The list of transactions to be created as TransactionDto objects.
+     * @return A CompletableFuture with a list of created transactions as TransactionDto objects.
+     * @throws IllegalArgumentException if any transaction is invalid or if there are insufficient funds.
+     */
     @Transactional
+    @Override
     public CompletableFuture<List<TransactionDto>> createTransactionsBatch(List<TransactionDto> transactionDtos) {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Processing batch of {} transactions in thread {}", transactionDtos.size(), Thread.currentThread().getName());
@@ -120,3 +159,4 @@ public class TransactionServiceImpl implements TransactionService {
         });
     }
 }
+

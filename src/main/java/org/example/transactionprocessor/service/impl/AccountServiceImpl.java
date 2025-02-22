@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of {@link AccountService}.
+ * Handles the logic for account creation, retrieval, update, and deletion.
+ */
 @Slf4j
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -19,6 +23,12 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final AccountMapper accountMapper;
 
+    /**
+     * Constructs the AccountService with dependencies.
+     *
+     * @param accountRepository The repository for account data operations.
+     * @param accountMapper The mapper for converting between Account entities and DTOs.
+     */
     public AccountServiceImpl(AccountRepository accountRepository, AccountMapper accountMapper) {
         this.accountRepository = accountRepository;
         this.accountMapper = accountMapper;
