@@ -3,6 +3,7 @@ package org.example.transactionprocessor.mapper;
 import org.example.transactionprocessor.entity.Balance;
 import org.example.transactionprocessor.entity.dto.BalanceDto;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper interface for converting between {@link Balance} and {@link BalanceDto}.
@@ -27,6 +28,7 @@ public interface BalanceMapper {
      * @param balanceDto The {@link BalanceDto} to convert.
      * @return The corresponding {@link Balance} entity.
      */
+    @Mapping(target = "account", ignore = true)
     Balance toEntity(BalanceDto balanceDto);
 }
 

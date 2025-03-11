@@ -1,8 +1,10 @@
 package org.example.transactionprocessor.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.example.transactionprocessor.entity.Account;
-import org.example.transactionprocessor.entity.dto.AccountDto;
+import org.example.transactionprocessor.entity.Balance;
+import org.example.transactionprocessor.entity.dto.AccountResponse;
 import org.example.transactionprocessor.mapper.AccountMapper;
 import org.example.transactionprocessor.repository.AccountRepository;
 import org.example.transactionprocessor.service.AccountService;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -34,14 +37,22 @@ public class AccountServiceImpl implements AccountService {
         this.accountMapper = accountMapper;
     }
 
+    @Transactional
     @Override
-    public Account createAccount(Account account) {
-        log.info("Creating new account: {}", account);
-        return accountRepository.save(account);
+    public AccountResponse createAccount(AccountResponse accountResponse) {
+        log.info("Creating account for ownerId: {}", accountResponse.ownerId());
+
+        Account savedAccount = new Account();
+        savedAccount.setOwnerId(accountResponse.ownerId());
+        savedAccount.setAccountNumber(generateAccountNumber());
+        savedAccount.setBalance(new Balance());
+
+        log.info("Account {} for user {} created", savedAccount.getId(), savedAccount.getOwnerId());
+        return accountMapper.toDto(savedAccount);
     }
 
     @Override
-    public AccountDto getAccountByNumber(String accountNumber) {
+    public AccountResponse getAccountByNumber(String accountNumber) {
         log.info("Fetching account with accountNumber: {}", accountNumber);
         Optional<Account> accountOptional = accountRepository.findByAccountNumber(accountNumber);
         if (accountOptional.isPresent()) {
@@ -67,10 +78,14 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDto> getAllAccounts() {
+    public List<AccountResponse> getAllAccounts() {
         List<Account> accounts = accountRepository.findAll();
         return accounts.stream()
                 .map(accountMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    private String generateAccountNumber() {
+        return UUID.randomUUID().toString();
     }
 }

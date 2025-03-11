@@ -13,6 +13,8 @@ public class Account {
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Balance balance;
 
+    private Long ownerId;
+
     public Account() {}
 
     public Account(String accountNumber) {
@@ -37,5 +39,13 @@ public class Account {
 
     public void setBalance(Balance balance) {
         this.balance = balance;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 }

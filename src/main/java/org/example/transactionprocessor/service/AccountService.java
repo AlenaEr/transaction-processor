@@ -1,7 +1,8 @@
 package org.example.transactionprocessor.service;
 
+import jakarta.transaction.Transactional;
 import org.example.transactionprocessor.entity.Account;
-import org.example.transactionprocessor.entity.dto.AccountDto;
+import org.example.transactionprocessor.entity.dto.AccountResponse;
 
 import java.util.List;
 
@@ -11,14 +12,17 @@ import java.util.List;
  */
 public interface AccountService {
 
-    /**
-     * Creates a new account with the provided details.
-     *
-     * @param account The account to be created, containing valid details.
-     * @return The created account with assigned ID and other information.
-     * @throws IllegalArgumentException if the account details are invalid or incomplete.
-     */
-    Account createAccount(Account account);
+//    /**
+//     * Creates a new account with the provided details.
+//     *
+//     * @param account The account to be created, containing valid details.
+//     * @return The created account with assigned ID and other information.
+//     * @throws IllegalArgumentException if the account details are invalid or incomplete.
+//     */
+//    Account createAccount(Account account);
+
+    @Transactional
+    AccountResponse createAccount(AccountResponse accountResponse);
 
     /**
      * Retrieves an account by its account number.
@@ -27,7 +31,7 @@ public interface AccountService {
      * @return The account DTO containing the account details.
      * @throws IllegalArgumentException if the account with the specified number does not exist.
      */
-    AccountDto getAccountByNumber(String accountNumber);
+    AccountResponse getAccountByNumber(String accountNumber);
 
     /**
      * Updates the details of an existing account.
@@ -50,5 +54,5 @@ public interface AccountService {
      *
      * @return A list of account DTOs containing the details of all accounts.
      */
-    List<AccountDto> getAllAccounts();
+    List<AccountResponse> getAllAccounts();
 }
